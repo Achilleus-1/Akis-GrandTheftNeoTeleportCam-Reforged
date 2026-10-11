@@ -14,4 +14,4 @@ Artwork by Achilleus. The supplied cover is the identity for this mod.
 
 All PNG exports preserve transparency and the full composition. No background is added to the icons, covers, or social preview. The original cover and cover preview are byte-identical to the supplied artwork. Use the same transparent mod icon for external project avatars and the cover for promotional artwork. GitHub's social preview must be uploaded separately in repository settings.
 
-Product of [Achilleus](https://linktr.ee/achilleus_). Upstream authors and licenses remain credited in the README and packaged notices.
+Product of [Achilleus](https://linktr.ee/achilleus_). See [LICENSE](LICENSE) and [credits](src/main/resources/CREDITS.md).
