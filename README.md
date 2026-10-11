@@ -16,7 +16,7 @@ Cinematic teleport transitions. Settings: NeoForge Mods screen or `/gtp config`.
 
 ## Installation
 
-For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.7.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.8.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
 
 ## Development
 
@@ -32,10 +32,10 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for reproducible checks and known archival 
 
 [Branding assets](BRANDING.md) include the mod icon, original cover, and GitHub social preview.
 
-## Attribution
+## License and credits
 
-Unofficial NeoForge port of [Grand Teleport](https://github.com/hookuru/GrandTeleport) by **hookuru_**. Port development and maintenance by **Achilleus (Achilleus-1)**. Original creators retain rights to their contributions.
+Based on [Grand Teleport](https://github.com/hookuru/GrandTeleport) by **hookuru_**.
 
-The mod code is licensed under **MIT**. Full license notices are retained in [LICENSE](LICENSE) and packaged resources. See [LEGAL.md](LEGAL.md) for upstream revisions, asset scope, and redistribution requirements.
+**MIT** — see [LICENSE](LICENSE) and [LEGAL.md](LEGAL.md).
 
-Upstream credits Codex for coding and hookuru_ for playtesting and supervision. The original restricted ZapSplat recordings are excluded; this edition uses Minecraft sound events.
+Reference credits: [CREDITS.md](src/main/resources/CREDITS.md). Original ZapSplat audio is excluded.

@@ -14,7 +14,7 @@ credits="Ported from Grand Teleport by hookuru_."
 description='''Product of Achilleus.
 https://linktr.ee/achilleus_
 
-Cinematic camera transitions for teleports. Uses Minecraft sound replacements. Unofficial NeoForge 1.21.1 port maintained by Achilleus. Original mod by hookuru_.'''
+Cinematic camera transitions for teleports. Uses Minecraft sound replacements. Unofficial NeoForge 1.21.1 port maintained by Achilleus.'''
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
