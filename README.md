@@ -4,6 +4,10 @@
 
 Cinematic teleport transitions. Settings: NeoForge Mods screen or `/gtp config`. Uses Minecraft sound replacements.
 
+## Demo
+
+![Gameplay demo of Aki's Grand Theft Neo Teleport Cam Reforged](docs/demo.gif)
+
 ## Installation
 
 For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.4.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
