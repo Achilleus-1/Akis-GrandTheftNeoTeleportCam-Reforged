@@ -1,7 +1,7 @@
 # Aki's Grand Theft Neo Teleport Cam Reforged
 
 <p align="center">
-  <img src="docs/cover-preview.png" alt="Aki's Grand Theft Neo Teleport Cam Reforged cover artwork" width="320" height="320">
+  <img src="docs/cover.png" alt="Aki's Grand Theft Neo Teleport Cam Reforged cover artwork" width="320" height="320">
 </p>
 
 **[Product of Achilleus](https://linktr.ee/achilleus_)** — Created and maintained by [Achilleus (Achilleus-1)](https://github.com/Achilleus-1).
@@ -14,7 +14,7 @@ Cinematic teleport transitions. Settings: NeoForge Mods screen or `/gtp config`.
 
 ## Installation
 
-For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.5.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.6.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
 
 ## Development
 
