@@ -454,13 +454,13 @@ public final class GtaLikeTeleportClient {
 
     private static Component createStateFeedback(boolean enabled, boolean saved, ChatFormatting formatting) {
         String state = enabled ? "ON" : "OFF";
-        String message = "Grand Theft Neo Port:" + state + (saved ? "" : " (save failed)");
+        String message = "Aki's Grand Theft Neo Teleport Cam Reforged:" + state + (saved ? "" : " (save failed)");
         return Component.literal((String)message).withStyle(formatting);
     }
 
     private static Component createPlayerFreezeStateFeedback(boolean enabled, boolean saved, ChatFormatting formatting) {
         String state = enabled ? "ON" : "OFF";
-        String message = "Grand Theft Neo Port player_freeze:" + state + (saved ? "" : " (save failed)");
+        String message = "Aki's Grand Theft Neo Teleport Cam Reforged player_freeze:" + state + (saved ? "" : " (save failed)");
         return Component.literal((String)message).withStyle(formatting);
     }
 

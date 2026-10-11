@@ -207,7 +207,7 @@ extends Screen {
     private int sessionLayoutBaseHeight;
 
     GtaLikeTeleportConfigScreen(Screen parent) {
-        super((Component)Component.literal((String)"Grand Theft Neo Port Settings"));
+        super((Component)Component.literal((String)"Aki's Grand Theft Neo Teleport Cam Reforged Settings"));
         this.parent = parent;
         this.selectedZoomDimension = GtaLikeTeleportConfigScreen.getInitialZoomDimension();
         this.linked = GtaLikeTeleportConfig.areZoomHeightsLinked(this.selectedZoomDimension);
@@ -1910,31 +1910,31 @@ extends Screen {
             return Component.translatable((String)"gtalike_teleport.config.description").getString();
         }
         if (ITEM_GENERAL_TITLE.equals(item)) {
-            return "Grand Theft Neo Port General Settings";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged General Settings";
         }
         if (ITEM_GENERAL_DESCRIPTION.equals(item)) {
             return "Adjust teleport behavior and input handling.";
         }
         if (ITEM_ADVANCED1_TITLE.equals(item)) {
-            return "Grand Theft Neo Port Advanced 1";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged Advanced 1";
         }
         if (ITEM_ADVANCED1_DESCRIPTION.equals(item)) {
             return "Tune extra glide used by zoom stages.";
         }
         if (ITEM_ADVANCED2_TITLE.equals(item)) {
-            return "Grand Theft Neo Port Zoom Stage 2";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged Zoom Stage 2";
         }
         if (ITEM_ADVANCED2_DESCRIPTION.equals(item)) {
             return "Set tick lengths for each zoom stage.";
         }
         if (ITEM_ADVANCED3_TITLE.equals(item)) {
-            return "Grand Theft Neo Port Advanced 3";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged Advanced 3";
         }
         if (ITEM_ADVANCED3_DESCRIPTION.equals(item)) {
             return "Tune body camera height and player hiding.";
         }
         if (ITEM_SOUNDS_TITLE.equals(item)) {
-            return "Grand Theft Neo Port Sound Settings";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged Sound Settings";
         }
         if (ITEM_SOUNDS_DESCRIPTION.equals(item)) {
             return "Choose the teleport sound source and volume.";
@@ -1943,7 +1943,7 @@ extends Screen {
             return "Teleport sound source";
         }
         if (ITEM_SOUND_MODE_TOGGLE.equals(item)) {
-            return this.customSoundsEnabled ? "Grand Theft Neo Port" : "Minecraft";
+            return this.customSoundsEnabled ? "Aki's Grand Theft Neo Teleport Cam Reforged" : "Minecraft";
         }
         if (ITEM_MINECRAFT_VOLUME_SLIDER.equals(item)) {
             return "Minecraft sound volume";
@@ -1952,7 +1952,7 @@ extends Screen {
             return "Custom sound volume";
         }
         if (ITEM_OTHERS_TITLE.equals(item)) {
-            return "Grand Theft Neo Port Other Settings";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged Other Settings";
         }
         if (ITEM_OTHERS_DESCRIPTION.equals(item)) {
             return "Control third-party and server-triggered teleport effects.";
@@ -1976,7 +1976,7 @@ extends Screen {
             return Component.translatable((String)"gtalike_teleport.config.unlinked").getString();
         }
         if (ITEM_EFFECT_LABEL.equals(item)) {
-            return "Grand Theft Neo Port effect";
+            return "Aki's Grand Theft Neo Teleport Cam Reforged effect";
         }
         if (ITEM_MOVEMENT_LABEL.equals(item)) {
             return "Allow movement during teleport";

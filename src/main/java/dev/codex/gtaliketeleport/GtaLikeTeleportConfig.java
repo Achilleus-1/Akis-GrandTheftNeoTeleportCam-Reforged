@@ -947,7 +947,7 @@ final class GtaLikeTeleportConfig {
         try {
             Files.createDirectories(configPath.getParent(), new FileAttribute[0]);
             try (OutputStream output = Files.newOutputStream(configPath, new OpenOption[0]);){
-                properties.store(output, "Grand Theft Neo Port client settings");
+                properties.store(output, "Aki's Grand Theft Neo Teleport Cam Reforged client settings");
             }
             return true;
         }

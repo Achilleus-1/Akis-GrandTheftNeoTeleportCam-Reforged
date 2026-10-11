@@ -1,20 +1,20 @@
 modLoader="javafml"
 loaderVersion="${loader_version_range}"
 license="${mod_license}"
-issueTrackerURL="https://github.com/Achilleus-1/Akis-GrandTheftNeoPort/issues"
+issueTrackerURL="https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/issues"
 
 [[mods]]
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://linktr.ee/achilleus_"
-logoFile="assets/achilleus/achilleus-logo-white.png"
+logoFile="icon.png"
 authors="${mod_authors}"
-credits="hookuru_, original Grand Teleport; upstream acknowledges Codex-assisted development"
+credits="Ported from Grand Teleport by hookuru_."
 description='''Product of Achilleus.
 https://linktr.ee/achilleus_
 
-Cinematic camera transitions for teleports. NeoForge 1.21.1 port and rebranding by Achilleus, based on Grand Teleport by hookuru_. Uses Minecraft sound replacements.'''
+Cinematic camera transitions for teleports. Uses Minecraft sound replacements. Unofficial NeoForge 1.21.1 port maintained by Achilleus. Original mod by hookuru_.'''
 
 [[dependencies.${mod_id}]]
 modId="neoforge"
