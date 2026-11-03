@@ -5,6 +5,6 @@
 
 Upstream: Codex coding; hookuru_ supervision and playtesting. API migration reference: [WT-teleport-1.21.1](https://github.com/ling-gwdgw2/WT-teleport-1.21.1) by ling-gwdgw2; see `LICENSE_WT-teleport-1.21.1`. Integration references: Leawind's Third Person and Waystones. Original ZapSplat audio is excluded.
 
-**MIT** — see `LICENSE` and `NOTICE.md`. [Source for this release](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/tree/v1.0.0-neoforge.8).
+**MIT** — see `LICENSE` and `NOTICE.md`. [Source for this release](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/tree/v1.0.0-neoforge.9).
 
 Unofficial Minecraft mod; not approved by or affiliated with Mojang or Microsoft.

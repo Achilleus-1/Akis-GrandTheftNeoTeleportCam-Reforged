@@ -26,6 +26,7 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ChunkTrackingView;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -98,6 +99,8 @@ public final class TeleportTransitionController {
     private static final float MINECRAFT_BODY_SOUND_PITCH = 0.8f;
     private static final int MINECRAFT_BODY_SOUND_LAYERS = 3;
     private static final int TRANSITION_SOURCE_CLIENT = 0;
+    private static final int ARRIVAL_RESPONSE_TIMEOUT_TICKS = 200;
+    private static final ArrivalTerrainWait arrivalTerrainWait = new ArrivalTerrainWait();
     private static Runnable pendingAction;
     private static Vec3 startFeet;
     private static Vec3 startEye;
@@ -222,6 +225,7 @@ public final class TeleportTransitionController {
         ticks = 0;
         skipTravel = TeleportTransitionController.shouldSkipTravelForTargetDimension(plannedTargetDimensionId);
         skipTravelArrivalDelayTicks = 0;
+        arrivalTerrainWait.reset();
         skipTravelTargetDimensionTicks = 0;
         arrivalTerrainRefreshTicks = 0;
         normalChunkHandoffDelayTicks = 0;
@@ -280,7 +284,7 @@ public final class TeleportTransitionController {
             TeleportTransitionController.clear(client);
             return;
         }
-        // Travel, arrival, and camera release must keep advancing after dispatch.
+        // Keep ticking while the destination hold extends only the arrival timeline.
         ++ticks;
         TeleportTransitionController.updateHardCutTerrainState(client);
         TeleportTransitionController.updateHudVisibility(client);
@@ -297,12 +301,25 @@ public final class TeleportTransitionController {
             TeleportTransitionController.recordActualTargetFeet(playerFeet);
             TeleportTransitionController.beginArrivalTerrainRefresh(client);
             if (skipTravel) {
-                skipTravelArrivalDelayTicks = Math.max(0, ticks - TeleportTransitionController.getTravelEndTick());
+                skipTravelArrivalDelayTicks = Math.max(0, ticks - TeleportTransitionController.getTravelEndTick() - arrivalTerrainWait.delayTicks());
                 totalTicks += skipTravelArrivalDelayTicks;
             }
         }
         TeleportTransitionController.closeSkipTravelLoadingTerrainScreen(client);
         TeleportTransitionController.updateNormalChunkHandoff(client);
+        // Start one tick before descent so partial render ticks cannot move down early.
+        if (arrivalTerrainWait.shouldHold(ticks >= TeleportTransitionController.getPushMotionStartTick() - 1)) {
+            // A denied command must not trap the player in the cinematic. This
+            // timeout only applies before arrival; chunk loading has no deadline.
+            if (actualTargetFeet == null && arrivalTerrainWait.delayTicks() >= ARRIVAL_RESPONSE_TIMEOUT_TICKS) {
+                TeleportTransitionController.clear(client);
+                return;
+            }
+            ++totalTicks;
+            if (arrivalTerrainWait.delayTicks() == 1) {
+                TeleportTransitionController.forceTerrainRefresh(client);
+            }
+        }
         TeleportTransitionController.restoreCameraTypeForEnterBody(client);
         if (ticks == 1) {
             TeleportTransitionController.playBodyTransitionSound(client, false);
@@ -1250,6 +1267,9 @@ public final class TeleportTransitionController {
     }
 
     private static boolean hasArrivedAtTeleportTarget(Minecraft client, Vec3 playerFeet) {
+        if (plannedTargetDimensionId != null && !TeleportTransitionController.isInPlannedTargetDimension(client)) {
+            return false;
+        }
         if (skipTravel && plannedTargetDimensionId != null) {
             if (!TeleportTransitionController.isInPlannedTargetDimension(client) || skipTravelTargetDimensionTicks < 3) {
                 return false;
@@ -1352,7 +1372,7 @@ public final class TeleportTransitionController {
             travelTicks = TeleportTransitionController.calculateTravelTicks(startFeet, actualTargetFeet);
             totalTicks = TeleportTransitionController.getFixedTotalTicks() + travelTicks;
         }
-        if (skipTravel || ticks < TeleportTransitionController.getTravelEndTick() || arrivalCameraFeet == null) {
+        if (skipTravel || ticks < TeleportTransitionController.getTravelEndTick() || arrivalCameraFeet == null || arrivalTerrainWait.isWaiting()) {
             arrivalCameraFeet = playerFeet;
         }
     }
@@ -2088,6 +2108,46 @@ public final class TeleportTransitionController {
         return loaded >= required;
     }
 
+    public static boolean isWaitingForArrivalTerrain() {
+        return TeleportTransitionController.isRunning() && arrivalTerrainWait.isWaiting();
+    }
+
+    /** Called after terrain has actually been processed and drawn, not just received. */
+    public static void onArrivalTerrainRendered(boolean terrainComplete) {
+        if (!TeleportTransitionController.isWaitingForArrivalTerrain()) {
+            return;
+        }
+        Minecraft client = Minecraft.getInstance();
+        arrivalTerrainWait.onTerrainRendered(terrainComplete && TeleportTransitionController.areDestinationChunksLoaded(client));
+    }
+
+    private static boolean areDestinationChunksLoaded(Minecraft client) {
+        if (client.level == null || client.player == null || actualTargetFeet == null
+                || plannedTargetDimensionId != null && !TeleportTransitionController.isInPlannedTargetDimension(client)) {
+            return false;
+        }
+        // Match the server's circular chunk tracking area. Square corners may never
+        // be sent, and the effective distance already includes the server's cap.
+        int radius = Math.max(1, client.options.getEffectiveRenderDistance());
+        int centerX = Mth.floor(actualTargetFeet.x) >> 4;
+        int centerZ = Mth.floor(actualTargetFeet.z) >> 4;
+        int playerX = client.player.chunkPosition().x;
+        int playerZ = client.player.chunkPosition().z;
+        if (!client.level.hasChunk(centerX, centerZ)) {
+            return false;
+        }
+        for (int dz = -radius; dz <= radius; ++dz) {
+            for (int dx = -radius; dx <= radius; ++dx) {
+                if (ChunkTrackingView.isInViewDistance(centerX, centerZ, radius, centerX + dx, centerZ + dz)
+                        && ChunkTrackingView.isInViewDistance(playerX, playerZ, radius, centerX + dx, centerZ + dz)
+                        && !client.level.hasChunk(centerX + dx, centerZ + dz)) {
+                    return false;
+                }
+            }
+        }
+        return client.level.isLightUpdateQueueEmpty() && !client.level.getLightEngine().hasLightWork();
+    }
+
     private static int getNormalChunkHandoffReadyRadius(Minecraft client) {
         int renderDistance = client.options == null ? 12 : client.options.getEffectiveRenderDistance();
         return Math.min(4, Math.max(2, renderDistance / 3));
@@ -2247,7 +2307,7 @@ public final class TeleportTransitionController {
     }
 
     private static int getPushStartTick() {
-        return TeleportTransitionController.getTravelEndTick() + TeleportTransitionController.getPrePushWaitTicks() + (skipTravel ? skipTravelArrivalDelayTicks : 0);
+        return TeleportTransitionController.getTravelEndTick() + TeleportTransitionController.getPrePushWaitTicks() + (skipTravel ? skipTravelArrivalDelayTicks : 0) + arrivalTerrainWait.delayTicks();
     }
 
     private static int getPullMotionEndTick() {
@@ -2258,7 +2318,7 @@ public final class TeleportTransitionController {
     }
 
     private static int getPushMotionStartTick() {
-        return skipTravel ? TeleportTransitionController.getPushStartTick() : TeleportTransitionController.getTravelEndTick();
+        return skipTravel ? TeleportTransitionController.getPushStartTick() : TeleportTransitionController.getTravelEndTick() + arrivalTerrainWait.delayTicks();
     }
 
     private static int getEnterHoldStartTick() {
@@ -2452,6 +2512,7 @@ public final class TeleportTransitionController {
         travelTicks = 40;
         transitionSource = 0;
         skipTravel = false;
+        arrivalTerrainWait.reset();
         normalChunkHandoffEnabled = false;
         normalChunkHandoffReady = false;
         normalChunkHandoffDelayTicks = 0;
