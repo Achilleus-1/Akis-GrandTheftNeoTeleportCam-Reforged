@@ -40,3 +40,15 @@ tasks.named('processResources', ProcessResources) {
         expand(modProperties)
     }
 }
+
+// Exercise the arrival hold without launching Minecraft or adding test dependencies.
+tasks.register('checkArrivalTerrainWait', JavaExec) {
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'dev.codex.gtaliketeleport.ArrivalTerrainWaitTest'
+}
+tasks.named('check') { dependsOn tasks.named('checkArrivalTerrainWait') }
+tasks.named('test', Test) {
+    // The dependency-free checks above have a main entry point, not JUnit methods.
+    failOnNoDiscoveredTests = false
+}

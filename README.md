@@ -8,7 +8,7 @@
 
 Unofficial Minecraft mod; not approved by or affiliated with Mojang or Microsoft.
 
-Cinematic teleport transitions. Settings: NeoForge Mods screen or `/gtp config`. Uses Minecraft sound replacements.
+Cinematic teleport transitions. The camera holds above the destination until nearby chunks within the effective render distance finish loading and terrain rendering settles, then resumes the zoom-in. Settings: NeoForge Mods screen or `/gtp config`. Uses Minecraft sound replacements.
 
 ## Demo
 
@@ -16,7 +16,7 @@ Cinematic teleport transitions. Settings: NeoForge Mods screen or `/gtp config`.
 
 ## Installation
 
-For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.8.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.9.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
 
 ## Development
 
