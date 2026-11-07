@@ -25,8 +25,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Position;
+import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ChunkTrackingView;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -35,6 +35,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.BlockHitResult;
@@ -101,6 +102,12 @@ public final class TeleportTransitionController {
     private static final int TRANSITION_SOURCE_CLIENT = 0;
     private static final int ARRIVAL_RESPONSE_TIMEOUT_TICKS = 200;
     private static final ArrivalTerrainWait arrivalTerrainWait = new ArrivalTerrainWait();
+    private static float lastAnimationFrameTick;
+    private static long nextArrivalDebugNanos;
+    private static int arrivalMissingChunks;
+    private static int arrivalUnbuiltSections;
+    private static int arrivalUnlitChunks;
+    private static long arrivalTerrainRevision;
     private static Runnable pendingAction;
     private static Vec3 startFeet;
     private static Vec3 startEye;
@@ -226,6 +233,9 @@ public final class TeleportTransitionController {
         skipTravel = TeleportTransitionController.shouldSkipTravelForTargetDimension(plannedTargetDimensionId);
         skipTravelArrivalDelayTicks = 0;
         arrivalTerrainWait.reset();
+        lastAnimationFrameTick = 0.0f;
+        nextArrivalDebugNanos = 0L;
+        ++arrivalTerrainRevision;
         skipTravelTargetDimensionTicks = 0;
         arrivalTerrainRefreshTicks = 0;
         normalChunkHandoffDelayTicks = 0;
@@ -284,7 +294,14 @@ public final class TeleportTransitionController {
             TeleportTransitionController.clear(client);
             return;
         }
-        // Keep ticking while the destination hold extends only the arrival timeline.
+        // If new loading appears during descent, hold the current camera frame.
+        // Chunk packets and rendering continue independently of this animation clock.
+        if (ticks < TeleportTransitionController.getEnterHoldStartTick()
+                && arrivalTerrainWait.shouldPauseDescent(System.nanoTime())) {
+            lastObservedPlayerFeet = TeleportTransitionController.getFeetPos(client.player);
+            return;
+        }
+        // Keep ticking while the initial destination hold extends the arrival timeline.
         ++ticks;
         TeleportTransitionController.updateHardCutTerrainState(client);
         TeleportTransitionController.updateHudVisibility(client);
@@ -308,7 +325,7 @@ public final class TeleportTransitionController {
         TeleportTransitionController.closeSkipTravelLoadingTerrainScreen(client);
         TeleportTransitionController.updateNormalChunkHandoff(client);
         // Start one tick before descent so partial render ticks cannot move down early.
-        if (arrivalTerrainWait.shouldHold(ticks >= TeleportTransitionController.getPushMotionStartTick() - 1)) {
+        if (arrivalTerrainWait.shouldHold(ticks >= TeleportTransitionController.getPushMotionStartTick() - 1, System.nanoTime())) {
             // A denied command must not trap the player in the cinematic. This
             // timeout only applies before arrival; chunk loading has no deadline.
             if (actualTargetFeet == null && arrivalTerrainWait.delayTicks() >= ARRIVAL_RESPONSE_TIMEOUT_TICKS) {
@@ -619,6 +636,11 @@ public final class TeleportTransitionController {
             return TeleportTransitionController.getPostReleaseCameraFrame(tickProgress);
         }
         float frameTick = Math.min((float)ticks + tickProgress, (float)totalTicks);
+        if (arrivalTerrainWait.isPaused()) {
+            frameTick = lastAnimationFrameTick;
+        } else {
+            lastAnimationFrameTick = frameTick;
+        }
         if (frameTick <= (float)(exitTicks = TeleportTransitionController.getExitBodyTicks())) {
             return TeleportTransitionController.exitBodyFrame(frameTick / (float)exitTicks);
         }
@@ -2112,40 +2134,97 @@ public final class TeleportTransitionController {
         return TeleportTransitionController.isRunning() && arrivalTerrainWait.isWaiting();
     }
 
-    /** Called after terrain has actually been processed and drawn, not just received. */
-    public static void onArrivalTerrainRendered(boolean terrainComplete) {
-        if (!TeleportTransitionController.isWaitingForArrivalTerrain()) {
-            return;
-        }
-        Minecraft client = Minecraft.getInstance();
-        arrivalTerrainWait.onTerrainRendered(terrainComplete && TeleportTransitionController.areDestinationChunksLoaded(client));
+    public static boolean shouldMonitorArrivalTerrain() {
+        return TeleportTransitionController.isRunning() && !cameraReleased
+                && arrivalTerrainWait.isMonitoring() && ticks < TeleportTransitionController.getEnterHoldStartTick();
     }
 
-    private static boolean areDestinationChunksLoaded(Minecraft client) {
+    public static void cancelArrivalTerrainWait(Minecraft client) {
+        if (TeleportTransitionController.isWaitingForArrivalTerrain()) {
+            TeleportTransitionController.clear(client);
+        }
+    }
+
+    public static void onDestinationChunkChanged(int x, int z) {
+        Minecraft client = Minecraft.getInstance();
+        if (TeleportTransitionController.shouldMonitorArrivalTerrain() && actualTargetFeet != null
+                && ArrivalTerrainCoverage.contains(x - (Mth.floor(actualTargetFeet.x) >> 4),
+                        z - (Mth.floor(actualTargetFeet.z) >> 4), client.options.getEffectiveRenderDistance())) {
+            arrivalTerrainWait.invalidate();
+            ++arrivalTerrainRevision;
+        }
+    }
+
+    public static long getArrivalTerrainRevision() {
+        return arrivalTerrainRevision;
+    }
+
+    /** Called after terrain has actually been processed and drawn, not just received. */
+    public static void onArrivalTerrainRendered(boolean dataReady, boolean geometryReady, boolean preciseRenderer) {
+        if (!TeleportTransitionController.shouldMonitorArrivalTerrain()) {
+            return;
+        }
+        long now = System.nanoTime();
+        arrivalTerrainWait.onTerrainRendered(dataReady, geometryReady, preciseRenderer, now);
+        if (now >= nextArrivalDebugNanos) {
+            nextArrivalDebugNanos = now + 10_000_000_000L;
+            LOGGER.info("GTP arrival loading: dataReady={} geometryReady={} precise={} missingChunks={} unlitChunks={} unbuiltSections={} radius={} delayTicks={}",
+                    dataReady, geometryReady, preciseRenderer, arrivalMissingChunks, arrivalUnlitChunks, arrivalUnbuiltSections,
+                    Minecraft.getInstance().options.getEffectiveRenderDistance(), arrivalTerrainWait.delayTicks());
+        }
+    }
+
+    /** Check received data and actively prepare geometry outside the camera's current view. */
+    public static boolean prepareArrivalTerrain(ArrivalTerrainRenderer renderer) {
+        Minecraft client = Minecraft.getInstance();
         if (client.level == null || client.player == null || actualTargetFeet == null
                 || plannedTargetDimensionId != null && !TeleportTransitionController.isInPlannedTargetDimension(client)) {
             return false;
         }
-        // Match the server's circular chunk tracking area. Square corners may never
-        // be sent, and the effective distance already includes the server's cap.
+        // Only use chunks the server is expected to send. The outer data ring
+        // supports meshes in the interior; do not wait for unavailable neighbors.
         int radius = Math.max(1, client.options.getEffectiveRenderDistance());
         int centerX = Mth.floor(actualTargetFeet.x) >> 4;
         int centerZ = Mth.floor(actualTargetFeet.z) >> 4;
         int playerX = client.player.chunkPosition().x;
         int playerZ = client.player.chunkPosition().z;
-        if (!client.level.hasChunk(centerX, centerZ)) {
-            return false;
-        }
-        for (int dz = -radius; dz <= radius; ++dz) {
-            for (int dx = -radius; dx <= radius; ++dx) {
-                if (ChunkTrackingView.isInViewDistance(centerX, centerZ, radius, centerX + dx, centerZ + dz)
-                        && ChunkTrackingView.isInViewDistance(playerX, playerZ, radius, centerX + dx, centerZ + dz)
-                        && !client.level.hasChunk(centerX + dx, centerZ + dz)) {
-                    return false;
-                }
+        BlockPos.MutableBlockPos origin = new BlockPos.MutableBlockPos();
+        int[] incomplete = new int[3];
+        boolean complete = ArrivalTerrainCoverage.prepare(centerX, centerZ, playerX, playerZ, radius, new ArrivalTerrainCoverage.ChunkProbe() {
+            @Override
+            public boolean isLoaded(int x, int z) {
+                boolean loaded = client.level.hasChunk(x, z);
+                if (!loaded) ++incomplete[0];
+                boolean lit = loaded && client.level.getLightEngine().lightOnInSection(SectionPos.of(x, 0, z));
+                if (loaded && !lit) ++incomplete[2];
+                return lit;
             }
-        }
-        return client.level.isLightUpdateQueueEmpty() && !client.level.getLightEngine().hasLightWork();
+
+            @Override
+            public boolean prepareChunk(int x, int z) {
+                var chunk = client.level.getChunkSource().getChunk(x, z, ChunkStatus.FULL, false);
+                if (chunk == null) return false;
+                boolean ready = true;
+                // All vertical sections, including terrain revealed by the final
+                // ground perspective or an underground destination, are considered.
+                var sections = chunk.getSections();
+                for (int i = 0; i < sections.length; ++i) {
+                    if (sections[i].hasOnlyAir()) continue;
+                    origin.set(x << 4, (client.level.getMinSection() + i) << 4, z << 4);
+                    if (!renderer.gtalikeTeleport$prepareSection(origin)) {
+                        ++incomplete[1];
+                        ready = false;
+                    }
+                }
+                return ready;
+            }
+        });
+        arrivalMissingChunks = incomplete[0];
+        arrivalUnbuiltSections = incomplete[1];
+        arrivalUnlitChunks = incomplete[2];
+        // Column lighting readiness is local to the destination. Global queues may
+        // contain perpetual work in unrelated chunks on an active modded server.
+        return complete;
     }
 
     private static int getNormalChunkHandoffReadyRadius(Minecraft client) {
