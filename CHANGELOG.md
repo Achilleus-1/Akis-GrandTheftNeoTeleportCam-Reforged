@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.0.0-neoforge.10 - 2026-11-07
+
+- Check destination chunk coverage and prepare vanilla terrain geometry outside the overhead camera's view, including underground sections.
+- Replace the five-frame release with an elapsed-time settling period; restart it when destination chunks arrive and check destination column lighting without waiting on unrelated global queues.
+- Monitor loading during descent and pause the camera in place if destination data becomes unavailable again.
+- Use a conservative fallback for replacement/LOD renderers instead of depending on their private APIs or waiting indefinitely for unrelated background rendering work.
+- Keep the loading hold entirely client-side, respecting the server's advertised view distance. Press Escape during a loading hold to restore normal camera control.
+
 ## 1.0.0-neoforge.9 - 2026-11-02
 
 - Hold the camera above the destination until surrounding chunks within the effective render distance are received, lighting finishes, and terrain rendering settles.

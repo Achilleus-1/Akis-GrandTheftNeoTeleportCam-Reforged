@@ -10,13 +10,15 @@ Unofficial Minecraft mod; not approved by or affiliated with Mojang or Microsoft
 
 Cinematic teleport transitions. The camera holds above the destination until nearby chunks within the effective render distance finish loading and terrain rendering settles, then resumes the zoom-in. Settings: NeoForge Mods screen or `/gtp config`. Uses Minecraft sound replacements.
 
+The loading hold runs entirely on your client, including when playing on a server without this mod. It follows the server's view-distance limit. Additional rendering mods use a longer, conservative settling period because their background terrain work may not expose an exact completion signal. Press **Escape** during a loading hold to restore normal camera control.
+
 ## Demo
 
 ![Gameplay demo of Aki's Grand Theft Neo Teleport Cam Reforged](docs/demo.gif)
 
 ## Installation
 
-For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.9.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.10.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
 
 ## Development
 

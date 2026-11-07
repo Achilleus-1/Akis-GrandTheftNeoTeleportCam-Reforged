@@ -27,7 +27,12 @@ final class SodiumCompat {
 
     static void scheduleTerrainUpdate() {
         try {
-            Class<?> rendererClass = Class.forName("me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer");
+            Class<?> rendererClass;
+            try {
+                rendererClass = Class.forName("net.caffeinemc.mods.sodium.client.render.SodiumWorldRenderer");
+            } catch (ClassNotFoundException legacy) {
+                rendererClass = Class.forName("me.jellysquid.mods.sodium.client.render.SodiumWorldRenderer");
+            }
             Method instanceNullable = rendererClass.getMethod("instanceNullable", new Class[0]);
             Object renderer = instanceNullable.invoke(null, new Object[0]);
             if (renderer == null) {

@@ -12,6 +12,6 @@ Upstream credit: Codex coding; hookuru_ supervision and playtesting. Migration r
 
 This project is not endorsed by Rockstar Games.
 
-[Source for this release](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/tree/v1.0.0-neoforge.9).
+[Source for this release](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/tree/v1.0.0-neoforge.10).
 
 Unofficial Minecraft mod; not approved by or affiliated with Mojang or Microsoft.
