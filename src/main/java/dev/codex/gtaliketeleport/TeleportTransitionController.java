@@ -175,6 +175,17 @@ public final class TeleportTransitionController {
     private TeleportTransitionController() {
     }
 
+    static void startReceivedTeleport(Minecraft client, Vec3 targetFeet, String targetDimensionId) {
+        // The server has already performed the move. Only its local cinematic is
+        // deferred, so vanilla can acknowledge the position immediately.
+        TeleportTransitionController.start(client, targetFeet, targetDimensionId, () -> {}, true, true, 1);
+        commandSent = true;
+        if (targetFeet != null) {
+            TeleportTransitionController.recordActualTargetFeet(targetFeet);
+            TeleportTransitionController.beginArrivalTerrainRefresh(client);
+        }
+    }
+
     static void start(Minecraft client, String command) {
         LocalPlayer player = client.player;
         if (player == null) {
