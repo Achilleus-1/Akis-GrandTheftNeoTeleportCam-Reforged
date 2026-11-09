@@ -35,6 +35,8 @@ import net.minecraft.network.PacketSendListener;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.common.ServerboundCustomPayloadPacket;
+import net.minecraft.network.protocol.game.ClientboundPlayerPositionPacket;
+import net.minecraft.world.entity.RelativeMovement;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -90,6 +92,9 @@ public final class GtaLikeTeleportClient {
         if (!TeleportCommandMatcher.isTeleportCommand(command) || client.player == null || client.getConnection() == null) {
             return true;
         }
+        if (!TeleportCommandMatcher.targetsLocalPlayer(command, client.player.getGameProfile().getName(), client.player.getUUID())) {
+            return true;
+        }
         if (!GtaLikeTeleportClient.canExecuteServerCommand(client, command)) {
             return true;
         }
@@ -98,6 +103,37 @@ public final class GtaLikeTeleportClient {
         }
         TeleportTransitionController.start(client, command);
         return false;
+    }
+
+    /** Position packets remain synchronous with vanilla, including their acknowledgement. */
+    public static void observeServerTeleport(ClientboundPlayerPositionPacket packet) {
+        Minecraft client = Minecraft.getInstance();
+        if (!GtaLikeTeleportClient.canObserveServerTeleport(client)) return;
+        var player = client.player;
+        var relative = packet.getRelativeArguments();
+        Vec3 target = new Vec3(
+                packet.getX() + (relative.contains(RelativeMovement.X) ? player.getX() : 0.0),
+                packet.getY() + (relative.contains(RelativeMovement.Y) ? player.getY() : 0.0),
+                packet.getZ() + (relative.contains(RelativeMovement.Z) ? player.getZ() : 0.0));
+        // Vanilla uses the same packet for teleports and movement corrections.
+        // Small corrections and rotation-only packets should leave the camera alone.
+        if (target.distanceToSqr(player.position()) <= 9.0) return;
+        TeleportTransitionController.startReceivedTeleport(client, target, DimensionIds.fromResourceKey(client.level.dimension()));
+    }
+
+    public static void observeServerDimensionChange(ResourceKey<net.minecraft.world.level.Level> targetDimension) {
+        Minecraft client = Minecraft.getInstance();
+        if (!GtaLikeTeleportClient.canObserveServerTeleport(client)
+                || client.level.dimension().equals(targetDimension)) return;
+        TeleportTransitionController.startReceivedTeleport(client, null, DimensionIds.fromResourceKey(targetDimension));
+    }
+
+    private static boolean canObserveServerTeleport(Minecraft client) {
+        return client.player != null && client.level != null && client.getConnection() != null
+                && client.player.tickCount >= 20 && client.player.isAlive()
+                && GtaLikeTeleportConfig.isEffectEnabled() && GtaLikeTeleportConfig.isExternalTeleportTransitionsEnabled()
+                && !TeleportTransitionController.isRunning()
+                && !GtaLikeTeleportClientNetworking.canSendServerTeleportAck();
     }
 
     public static boolean interceptOutgoingPacket(Connection connection, Packet<?> packet, PacketSendListener listener) {

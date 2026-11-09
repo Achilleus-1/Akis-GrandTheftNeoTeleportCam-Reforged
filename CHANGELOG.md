@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.0-neoforge.11 - 2026-11-09
+
+- Route teleport command previews according to the moving player. Commands such as `/tp Receiver Issuer` and `/tp Receiver ~ ~ ~` leave the issuer's camera under normal control.
+- Preserve self teleport previews and let the server resolve group selectors and execution contexts that can change the moving player.
+- Detect received server position jumps and dimension transfers on clients connected to servers without the mod, while acknowledging position packets immediately.
+- Ignore login placement, duplicate position packets, and small movement corrections in the client-only recipient fallback.
+
 ## 1.0.0-neoforge.10 - 2026-11-07
 
 - Check destination chunk coverage and prepare vanilla terrain geometry outside the overhead camera's view, including underground sections.

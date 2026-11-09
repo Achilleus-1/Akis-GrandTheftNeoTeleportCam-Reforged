@@ -18,7 +18,20 @@ The loading hold runs entirely on your client, including when playing on a serve
 
 ## Installation
 
-For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.10.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+For **Minecraft 1.21.1**, **NeoForge 21.1.255**, and **Java 21**. Download `akis-grand-theft-neo-teleport-cam-reforged-1.21.1-1.0.0-neoforge.11.jar` from [Releases](https://github.com/Achilleus-1/Akis-GrandTheftNeoTeleportCam-Reforged/releases/latest) and place it in your `mods` folder. Remove older copies first.
+
+## Multiplayer
+
+Install the mod on each player client that should display the camera sequence. With
+the mod also installed on a NeoForge server, the server starts the sequence on each
+player actually being teleported. `/tp Receiver Issuer` and `/tp Receiver ~ ~ ~`
+animate Receiver. Group selectors follow the players the server resolves.
+
+On a server without the mod, self teleport commands still support local previews.
+An affected modded client can also detect incoming position jumps over three blocks
+and live dimension transfers. Vanilla position packets also represent movement
+corrections, so this fallback deliberately ignores smaller changes. The server
+integration provides precise recipient routing for teleports at every distance.
 
 ## Development
 
